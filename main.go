@@ -12,6 +12,7 @@ func init() {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
 	log.SetOutput(logFile)
+	bot.Init()
 }
 
 func main() {
