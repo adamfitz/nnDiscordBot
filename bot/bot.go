@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"log"
+	"main/api"
 	"main/auth"
 	"os"
 	"os/signal"
@@ -19,9 +20,10 @@ var CommandHandlers map[string]CommandHandler
 func Init() {
 	// Initialize the CommandHandlers map
 	CommandHandlers = map[string]CommandHandler{
-		"!help": handleHelp,
-		"!bye":  handleBye,
-		"!echo": handleEcho,
+		"!help":         handleHelp,
+		"!bye":          handleBye,
+		"!echo":         handleEcho,
+		"!sonarrlookup": handleSonarrSeriesLookup,
 	}
 }
 
@@ -92,4 +94,81 @@ func handleEcho(s *discordgo.Session, m *discordgo.MessageCreate, args []string)
 	// Join the arguments into a single string
 	message := strings.Join(args, " ")
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("You said: %s", message))
+}
+
+// handleSonarr responds to the !sslookup command and demonstrates argument usage
+func handleSonarrSeriesLookup(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	// Load the credentials from the auth package
+	creds, err := auth.LoadCreds()
+	if err != nil {
+		log.Println("Error loading credentials:", err)
+		s.ChannelMessageSend(m.ChannelID, "Error loading credentials. Please try again later.")
+		return
+	}
+	sonarrApiKey := creds.SonarrApiToken
+
+	log.Println("Sonarr Lookup arguments:", args)
+
+	// Check if argument is provided
+	if len(args) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "Usage: !sonarrlookup <series_name>")
+		return
+	}
+
+	// Call the Sonarr API
+	baseURL := "http://10.23.0.3:8989/api/v3/series/lookup"
+	result, err := api.SonarrSeriesLookupAPICall(baseURL, "X-Api-Key", sonarrApiKey, "term", args[0])
+	if err != nil {
+		log.Println("Error handling Sonarr API call:", err)
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error handling Sonarr API call: %s", err))
+		return
+	}
+
+	// Process the Sonarr API response to extract series titles
+	seriesTitles, err := api.ProcessSeriesLookupResponse(result)
+	if err != nil {
+		log.Println("Error processing Sonarr API response:", err)
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error processing Sonarr API response: %s", err))
+		return
+	}
+
+	log.Println("Series titles:", seriesTitles)
+
+	// Prepare the response message with series titles
+	if len(seriesTitles) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "No series found.")
+		return
+	}
+
+	var message string
+	for _, title := range seriesTitles {
+		message += fmt.Sprintf("- %s\n", title)
+	}
+
+	// Function to split message into chunks of 2000 characters or less
+	sendMessageChunks := func(message string) {
+		for len(message) > 2000 {
+			// Find the last line break within 2000 characters
+			truncatedMessage := message[:2000]
+			lastNewlineIndex := strings.LastIndex(truncatedMessage, "\n")
+
+			if lastNewlineIndex == -1 {
+				// If there's no newline in the first 2000 characters, send the whole chunk
+				s.ChannelMessageSend(m.ChannelID, truncatedMessage)
+				message = message[2000:]
+			} else {
+				// Send the chunk up to the last complete series
+				s.ChannelMessageSend(m.ChannelID, message[:lastNewlineIndex+1])
+				message = message[lastNewlineIndex+1:]
+			}
+		}
+
+		// Send the remaining message (less than 2000 characters)
+		if len(message) > 0 {
+			s.ChannelMessageSend(m.ChannelID, message)
+		}
+	}
+
+	// Send the message in chunks if it's too long
+	sendMessageChunks(message)
 }

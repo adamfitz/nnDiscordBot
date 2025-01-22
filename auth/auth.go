@@ -8,7 +8,8 @@ import (
 )
 
 type Auth struct {
-	BotToken string `json:"bot_token"`
+	BotToken       string `json:"bot_token"`
+	SonarrApiToken string `json:"sonarr_api_token"`
 }
 
 // LoadCreds loads the credentials from the .discordrc file.

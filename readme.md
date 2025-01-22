@@ -7,6 +7,7 @@ These creds need to be added to the above file in the below format:
 ```bash
 {
     "bot_token": "xxx"
+    "sonarr_api_token": "xxx
 }
 ```
 
