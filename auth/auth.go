@@ -73,7 +73,7 @@ func LoadConfig() (Config, error) {
 	defer file.Close()
 
 	// Decode the JSON file
-	var config Auth
+	var config Config
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&config); err != nil {
 		log.Println("Error decoding JSON:", err)
@@ -81,5 +81,5 @@ func LoadConfig() (Config, error) {
 	}
 
 	// Return the config and no error
-	return Config{}, nil
+	return config, nil
 }

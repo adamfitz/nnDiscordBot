@@ -13,6 +13,18 @@ type SeriesLookupResponse struct {
 	Title string `json:"title"`
 }
 
+// Series represents a series from the Sonarr API (local sonarr instance API response).
+type Series struct {
+	ID            int      `json:"id"`
+	Title         string   `json:"title"`
+	SeasonCount   int      `json:"seasonCount"`
+	EpisodesCount int      `json:"episodeCount"`
+	Year          int      `json:"year"`
+	Status        string   `json:"status"`
+	Path          string   `json:"path"`
+	Genres        []string `json:"genres"`
+}
+
 // SonarrAPICall performs a GET request to the specified URL with the provided API key, query parameter, and header name.
 func SonarrSeriesLookupAPICall(baseURL, apiKeyHeader, apiKey, queryParamName, queryParamValue string) (string, error) {
 	// Build the URL with query parameters
@@ -76,7 +88,7 @@ func ProcessSeriesLookupResponse(responseBody string) ([]string, error) {
 	return titles, nil
 }
 
-// SearchSeriesInSonarr searches for a specific series by name in the local Sonarr instance
+// earches for a specific series by name in the local Sonarr instance
 func SonarrLocalSeriesSearch(localSeriesLookupURL, apiKey string, seriesName string) (string, error) {
 
 	/*
@@ -133,6 +145,43 @@ func SonarrLocalSeriesSearch(localSeriesLookupURL, apiKey string, seriesName str
 
 // construct target sonarr instance URL
 
-func ConstructSonarrURL(sonarrInstance, sonarrPort string) string {
-	return fmt.Sprintf("http://%s:%s", sonarrInstance, sonarrPort)
+func ConstructSonarrLocalSeriesURL(sonarrInstance, sonarrPort string) string {
+	return fmt.Sprintf("http://%s:%s/api/v3/series", sonarrInstance, sonarrPort)
+}
+
+// FetchAllSeriesFromSonarr retrieves all series from the local Sonarr instance.
+func SonarrFetchAllLocalSeries(sonarrLocalSeriesUrl, apiKey string) (string, error) {
+	/*
+		This function retrieves all series data from the local Sonarr instance.
+	*/
+
+	// Create a new GET request
+	req, err := http.NewRequest("GET", sonarrLocalSeriesUrl, nil)
+	if err != nil {
+		return "", fmt.Errorf("error creating request: %w", err)
+	}
+
+	// Add the API key to the headers
+	req.Header.Set("X-Api-Key", apiKey)
+
+	// Perform the HTTP request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error performing request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for HTTP errors
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("received non-200 status code: %d", resp.StatusCode)
+	}
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response body: %w", err)
+	}
+
+	return string(body), nil
 }
