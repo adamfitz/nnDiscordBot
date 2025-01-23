@@ -15,14 +15,16 @@ type SeriesLookupResponse struct {
 
 // Series represents a series from the Sonarr API (local sonarr instance API response).
 type Series struct {
-	ID            int      `json:"id"`
-	Title         string   `json:"title"`
-	SeasonCount   int      `json:"seasonCount"`
-	EpisodesCount int      `json:"episodeCount"`
-	Year          int      `json:"year"`
-	Status        string   `json:"status"`
-	Path          string   `json:"path"`
-	Genres        []string `json:"genres"`
+	ID               int      `json:"id"`
+	Title            string   `json:"title"`
+	SeasonCount      int      `json:"seasonCount"`
+	EpisodesCount    int      `json:"episodesCount"`
+	Year             int      `json:"year"`
+	Status           string   `json:"status"`
+	Path             string   `json:"path"`
+	Genres           []string `json:"genres"`
+	TotalEpisodes    int      `json:"totalEpisodes"`
+	EpisodeFileCount int      `json:"episodeFileCount"`
 }
 
 // SonarrAPICall performs a GET request to the specified URL with the provided API key, query parameter, and header name.
@@ -149,12 +151,8 @@ func ConstructSonarrLocalSeriesURL(sonarrInstance, sonarrPort string) string {
 	return fmt.Sprintf("http://%s:%s/api/v3/series", sonarrInstance, sonarrPort)
 }
 
-// FetchAllSeriesFromSonarr retrieves all series from the local Sonarr instance.
+// SonarrFetchAllLocalSeries retrieves all series from the local Sonarr instance.
 func SonarrFetchAllLocalSeries(sonarrLocalSeriesUrl, apiKey string) (string, error) {
-	/*
-		This function retrieves all series data from the local Sonarr instance.
-	*/
-
 	// Create a new GET request
 	req, err := http.NewRequest("GET", sonarrLocalSeriesUrl, nil)
 	if err != nil {
@@ -183,5 +181,46 @@ func SonarrFetchAllLocalSeries(sonarrLocalSeriesUrl, apiKey string) (string, err
 		return "", fmt.Errorf("error reading response body: %w", err)
 	}
 
-	return string(body), nil
+	// Parse the JSON response
+	var rawSeries []struct {
+		ID         int      `json:"id"`
+		Title      string   `json:"title"`
+		Status     string   `json:"status"`
+		Path       string   `json:"path"`
+		Year       int      `json:"year"`
+		Genres     []string `json:"genres"`
+		Statistics struct {
+			SeasonCount       int `json:"seasonCount"`
+			TotalEpisodeCount int `json:"totalEpisodeCount"`
+			EpisodeFileCount  int `json:"episodeFileCount"`
+		} `json:"statistics"`
+	}
+
+	err = json.Unmarshal(body, &rawSeries)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshalling response: %w", err)
+	}
+
+	// Transform the raw data into the Series struct
+	var seriesList []Series
+	for _, rs := range rawSeries {
+		seriesList = append(seriesList, Series{
+			ID:            rs.ID,
+			Title:         rs.Title,
+			Status:        rs.Status,
+			Path:          rs.Path,
+			Year:          rs.Year,
+			Genres:        rs.Genres,
+			SeasonCount:   rs.Statistics.SeasonCount,
+			EpisodesCount: rs.Statistics.TotalEpisodeCount,
+		})
+	}
+
+	// Marshal the series list to JSON
+	seriesJSON, err := json.Marshal(seriesList)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling series list to JSON: %w", err)
+	}
+
+	return string(seriesJSON), nil
 }

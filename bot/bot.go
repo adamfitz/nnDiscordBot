@@ -194,11 +194,11 @@ func handleSonarrLocalSeriesSearch(s *discordgo.Session, m *discordgo.MessageCre
 		return
 	}
 
-	log.Printf("Config data loaded. Target instance: %s, target port: %s", config.SonarrInstance, config.SonarrPort)
+	//log.Printf("Config data loaded. Target instance: %s, target port: %s", config.SonarrInstance, config.SonarrPort)
 
 	// Construct the Sonarr instance URL using the loaded config
 	baseURL := api.ConstructSonarrLocalSeriesURL(config.SonarrInstance, config.SonarrPort)
-	log.Println("Base Sonarr URL constructed:", baseURL)
+	//log.Println("Base Sonarr URL constructed:", baseURL)
 
 	sonarrApiKey := creds.SonarrApiToken
 	log.Println("Sonarr API Local search arguments:", args)
