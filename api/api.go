@@ -75,3 +75,64 @@ func ProcessSeriesLookupResponse(responseBody string) ([]string, error) {
 
 	return titles, nil
 }
+
+// SearchSeriesInSonarr searches for a specific series by name in the local Sonarr instance
+func SonarrLocalSeriesSearch(localSeriesLookupURL, apiKey string, seriesName string) (string, error) {
+
+	/*
+		This function performs a lookup for a series that has already been added to the target (local) sonarr instance.
+
+		This API call uses a differnt url endpoint for the search as seen below:
+
+		Example:
+		localSeriesLookupURL = "http://<target_instance>:<target_port>/api/series/lookup"
+
+	*/
+
+	// Build the URL to query the series by name
+	u, err := url.Parse(localSeriesLookupURL)
+	if err != nil {
+		return "", fmt.Errorf("invalid base URL: %w", err)
+	}
+
+	// Add the query parameter for the series name
+	q := u.Query()
+	q.Set("search", seriesName) // Use the query parameter 'search' to search by title
+	u.RawQuery = q.Encode()
+
+	// Create a new GET request
+	req, err := http.NewRequest("GET", u.String(), nil)
+	if err != nil {
+		return "", fmt.Errorf("error creating request: %w", err)
+	}
+
+	// Set the API key header
+	req.Header.Set("X-Api-Key", apiKey)
+
+	// Perform the HTTP request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error performing request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for HTTP errors
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("received non-200 status code: %d", resp.StatusCode)
+	}
+
+	// Read the response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response body: %w", err)
+	}
+
+	return string(body), nil
+}
+
+// construct target sonarr instance URL
+
+func ConstructSonarrURL(sonarrInstance, sonarrPort string) string {
+	return fmt.Sprintf("http://%s:%s", sonarrInstance, sonarrPort)
+}
