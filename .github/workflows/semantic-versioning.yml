@@ -7,6 +7,7 @@ on:
 
 permissions: # to allow the auto created gitactions tocken to push changes to the repo
   contents: write
+  actions: write
 
 jobs:
   semantic-versioning:
