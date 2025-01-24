@@ -1,43 +1,24 @@
-name: Increment version and create tag
+name: Semantic Versioning and Tagging
 
 on:
-  push:       # push to master bracnh should only ever be on a merge (PR from another branch no direct commits to master)
+  push:
     branches:
-      - master # the monitored branch
+      - master    # execute on PR merge to master branch
 
 jobs:
   semantic-versioning:
-    runs-on: ubuntu-latest # container OS
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3   # checkout code from the repository
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v3 # install / setup nodejs dependancy
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: '16'
 
-      - name: increment version and tag
-        id: versioning
-        uses: ejpoole/semantic-versioning-git@v2.0.1
-        with:
-          # Customize the commit message prefixes for semantic versioning
-          patch-pattern: '^fix:'
-          minor-pattern: '^feat:'
-          major-pattern: '^BREAKING CHANGE:'
-          dry-run: false
-          initial-version: '0.1.0'
-
-      - name: Output version and tag
-        run: |
-          echo "New version: ${{ steps.versioning.outputs.new-version }}"
-          echo "Created tag: ${{ steps.versioning.outputs.new-tag }}"
-
-      - name: Push changes and tags
+      - name: Run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git push origin --tags
+        uses: paambaati/semantic-release-action@v2
