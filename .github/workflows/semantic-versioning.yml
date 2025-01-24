@@ -3,10 +3,10 @@ name: Semantic Versioning and Tagging
 on:
   push:
     branches:
-      - master  # target brnach to "listen" for PR merges
+      - master  # Trigger when pushing to master (e.g. after PR merge)
 
-permissions: # to allow the auto created gitactions tocken to push changes to the repo
-  contents: write
+permissions: # to allow the auto-created GitHub Actions token to push changes to the repo
+  contents: write  # To allow pushing tags
 
 jobs:
   semantic-versioning:
@@ -15,10 +15,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false  # Don't persist the default GITHUB_TOKEN
 
       - name: Run Semantic Release (version increment and tag creation)
         uses: cycjimmy/semantic-release-action@v3
         with:
           dry_run: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SEMVER }} # personal access token with repo scope set as a secret.
+
+      # Explicitly push tags after semantic-release creates them (optional but clarifies intent)
+      - name: Push tags
+        run: |
+          git push --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMVER }}  
