@@ -3,11 +3,11 @@ name: Semantic Versioning and Tagging
 on:
   push:
     branches:
-      - master  # target branch to "listen" for PR merges
+      - master  # Trigger when pushing to master
 
 permissions:
   contents: write  # Allow GitHub Actions to push content to the repo
-  actions: write
+  actions: write   # Allow GitHub Actions to create a tag and trigger actions
 
 jobs:
   semantic-versioning:
@@ -20,34 +20,10 @@ jobs:
         with:
           persist-credentials: false
 
-      # Set up Go environment
-      - name: Set up Go
-        uses: actions/setup-go@v3
-        with:
-          go-version: '1.22.2'  # Specify the Go version you want to use
-
-      # Build the Go executable for Linux, macOS, and Windows
-      - name: Build Go executables for Linux, macOS, and Windows
-        run: |
-          GOOS=linux GOARCH=amd64 go build -o nnDiscordBot-linux-amd64
-          GOOS=darwin GOARCH=amd64 go build -o nnDiscordBot-darwin-amd64
-          GOOS=windows GOARCH=amd64 go build -o nnDiscordBot-windows-amd64.exe
-
       # Run Semantic Release (version increment and tag creation)
       - name: Run Semantic Release (version increment and tag creation)
         uses: cycjimmy/semantic-release-action@v3
         with:
           dry_run: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.SEMVER }}
-
-      # Upload Go executables to GitHub Releases
-      - name: Upload Go executables to GitHub Releases
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-              nnDiscordBot-linux-amd64
-              nnDiscordBot-darwin-amd64
-              nnDiscordBot-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.SEMVER }}
