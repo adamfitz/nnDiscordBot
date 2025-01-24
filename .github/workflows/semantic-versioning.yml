@@ -41,14 +41,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.SEMVER }}
 
-      # Upload Go executables to GitHub Releases only after the tag creation step
+      # Upload Go executables to GitHub Releases
       - name: Upload Go executables to GitHub Releases
-        if: startsWith(github.ref, 'refs/tags/')  # Only run on tag push
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            nnDiscordBot-linux-amd64
-            nnDiscordBot-darwin-amd64
-            nnDiscordBot-windows-amd64.exe
+              nnDiscordBot-linux-amd64
+              nnDiscordBot-darwin-amd64
+              nnDiscordBot-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.SEMVER }}
