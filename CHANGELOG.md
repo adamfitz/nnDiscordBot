@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/adamfitz/nnDiscordBot/compare/v1.0.0...v1.0.1) (2025-01-24)
+
+
+### Bug Fixes
+
+* PAT perms ([#12](https://github.com/adamfitz/nnDiscordBot/issues/12)) ([79c972d](https://github.com/adamfitz/nnDiscordBot/commit/79c972d3f279b0fa05a103d1aeead70887fdb73f))
+* permissions ([#11](https://github.com/adamfitz/nnDiscordBot/issues/11)) ([1109ac2](https://github.com/adamfitz/nnDiscordBot/commit/1109ac26a6199b2f0ac71485eb1fe9283780c483))
+* Reapply "test proected branch commit" ([#10](https://github.com/adamfitz/nnDiscordBot/issues/10)) ([1e0c735](https://github.com/adamfitz/nnDiscordBot/commit/1e0c735d4c1e049ea5edcba7e7858cce769468a6))
+
 # 1.0.0 (2025-01-24)
 
 
