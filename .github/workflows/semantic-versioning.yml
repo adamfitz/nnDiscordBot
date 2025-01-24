@@ -3,7 +3,7 @@ name: Semantic Versioning and Tagging
 on:
   push:
     branches:
-      - master    # execute on PR merge to master branch
+      - master  # target brnach to "listen" for PR merges
 
 jobs:
   semantic-versioning:
@@ -13,12 +13,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Run Semantic Release (version increment and tag creation)
+        uses: cycjimmy/semantic-release-action@v3
         with:
-          node-version: '16'
-
-      - name: Run semantic-release
+          dry_run: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: paambaati/semantic-release-action@v2
