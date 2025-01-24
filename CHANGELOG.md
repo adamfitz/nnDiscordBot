@@ -1,3 +1,10 @@
+## [1.1.6](https://github.com/adamfitz/nnDiscordBot/compare/v1.1.5...v1.1.6) (2025-01-24)
+
+
+### Bug Fixes
+
+* trigger on any tag ([#20](https://github.com/adamfitz/nnDiscordBot/issues/20)) ([2b5de92](https://github.com/adamfitz/nnDiscordBot/commit/2b5de92217cfe45d99f189c6ee65eeca0c4cfbfb))
+
 ## [1.1.5](https://github.com/adamfitz/nnDiscordBot/compare/v1.1.4...v1.1.5) (2025-01-24)
 
 
