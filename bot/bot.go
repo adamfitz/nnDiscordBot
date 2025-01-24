@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"log"
@@ -24,6 +25,7 @@ func Init() {
 		"!bye":          handleBye,
 		"!echo":         handleEcho,
 		"!sonarrlookup": handleSonarrSeriesLookup,
+		"!sonarrls":     handleSonarrLocalSeriesSearch, // search only the local sonarr instance
 	}
 }
 
@@ -170,5 +172,110 @@ func handleSonarrSeriesLookup(s *discordgo.Session, m *discordgo.MessageCreate, 
 	}
 
 	// Send the message in chunks if it's too long
+	sendMessageChunks(message)
+}
+
+// handleSonarr responds to the !sonarrls command
+// handleSonarr responds to the !sonarrls command
+func handleSonarrLocalSeriesSearch(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	// Load the credentials from the auth package
+	creds, err := auth.LoadCreds()
+	if err != nil {
+		log.Println("Error loading credentials:", err)
+		s.ChannelMessageSend(m.ChannelID, "Error loading credentials. Please try again later.")
+		return
+	}
+
+	// Load the local config file
+	config, err := auth.LoadConfig()
+	if err != nil {
+		log.Println("Error loading config file:", err)
+		s.ChannelMessageSend(m.ChannelID, "Error loading config file. Please try again later.")
+		return
+	}
+
+	//log.Printf("Config data loaded. Target instance: %s, target port: %s", config.SonarrInstance, config.SonarrPort)
+
+	// Construct the Sonarr instance URL using the loaded config
+	baseURL := api.ConstructSonarrLocalSeriesURL(config.SonarrInstance, config.SonarrPort)
+	//log.Println("Base Sonarr URL constructed:", baseURL)
+
+	sonarrApiKey := creds.SonarrApiToken
+	log.Println("Sonarr API Local search arguments:", args)
+
+	// Check if argument is provided
+	if len(args) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "Usage: !sonarrls <series_name>\n(sonarr local search)")
+		return
+	}
+
+	// Fetch all series from the local Sonarr instance
+	allSeriesJSON, err := api.SonarrFetchAllLocalSeries(baseURL, sonarrApiKey)
+	if err != nil {
+		log.Println("Error fetching series from Sonarr:", err)
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error fetching series from Sonarr: %s", err))
+		return
+	}
+
+	// Unmarshal all series data
+	var allSeries []api.Series
+	if err := json.Unmarshal([]byte(allSeriesJSON), &allSeries); err != nil {
+		log.Println("Error unmarshalling Sonarr API response:", err)
+		s.ChannelMessageSend(m.ChannelID, "Error processing Sonarr API response.")
+		return
+	}
+
+	// Search for series matches
+	searchQuery := strings.ToLower(strings.Join(args, " "))
+	var matchingSeries []api.Series
+
+	for _, series := range allSeries {
+		title := strings.ToLower(series.Title)
+		if strings.Contains(title, searchQuery) {
+			matchingSeries = append(matchingSeries, series)
+		}
+	}
+
+	// Prepare the response message
+	if len(matchingSeries) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "No series found.")
+		return
+	}
+
+	// Build the response message
+	var message string
+	for _, series := range matchingSeries {
+		message += fmt.Sprintf(
+			"**%s** (ID: %d)\n- Seasons: %d\n- Episodes: %d\n- Year: %d\n- Status: %s\n- Path: %s\n- Genres: %s\n\n",
+			series.Title, series.ID, series.SeasonCount, series.EpisodesCount, series.Year,
+			series.Status, series.Path, strings.Join(series.Genres, ", "),
+		)
+	}
+
+	// Function to split and send message chunks
+	sendMessageChunks := func(message string) {
+		for len(message) > 2000 {
+			// Find the last newline before 2000 characters
+			truncatedMessage := message[:2000]
+			lastNewlineIndex := strings.LastIndex(truncatedMessage, "\n")
+
+			if lastNewlineIndex == -1 {
+				// No newline, send the whole chunk
+				s.ChannelMessageSend(m.ChannelID, truncatedMessage)
+				message = message[2000:]
+			} else {
+				// Send up to the last newline
+				s.ChannelMessageSend(m.ChannelID, message[:lastNewlineIndex+1])
+				message = message[lastNewlineIndex+1:]
+			}
+		}
+
+		// Send any remaining part of the message
+		if len(message) > 0 {
+			s.ChannelMessageSend(m.ChannelID, message)
+		}
+	}
+
+	// Send the response
 	sendMessageChunks(message)
 }
