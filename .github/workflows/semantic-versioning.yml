@@ -43,7 +43,7 @@ jobs:
 
       # Upload Go executables to GitHub Releases only after the tag creation step
       - name: Upload Go executables to GitHub Releases
-        if: github.ref != 'refs/heads/master'  # Ensure this only happens for tags (not master branch)
+        if: startsWith(github.ref, 'refs/tags/')  # Only run on tag push
         uses: softprops/action-gh-release@v1
         with:
           files: |

@@ -37,5 +37,3 @@ $ cat ~/.config/nnDiscordBot/nnDiscordCBot.config
 	"sonarr_port": "8989"
 }
 ```
-
-Test master branch update...
