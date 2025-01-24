@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/adamfitz/nnDiscordBot/compare/v1.1.2...v1.1.3) (2025-01-24)
+
+
+### Bug Fixes
+
+* binary upload ([#17](https://github.com/adamfitz/nnDiscordBot/issues/17)) ([de58dca](https://github.com/adamfitz/nnDiscordBot/commit/de58dcaf56c63c94be5bfeb4a498cdd0d0659be6))
+
 ## [1.1.2](https://github.com/adamfitz/nnDiscordBot/compare/v1.1.1...v1.1.2) (2025-01-24)
 
 
