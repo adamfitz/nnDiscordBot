@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/adamfitz/nnDiscordBot/compare/v1.0.1...v1.1.0) (2025-01-24)
+
+
+### Features
+
+* add binary builds ([#13](https://github.com/adamfitz/nnDiscordBot/issues/13)) ([ec7484c](https://github.com/adamfitz/nnDiscordBot/commit/ec7484c37f87705055e864cff24b968caa554a20))
+
 ## [1.0.1](https://github.com/adamfitz/nnDiscordBot/compare/v1.0.0...v1.0.1) (2025-01-24)
 
 
