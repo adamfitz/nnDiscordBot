@@ -31,10 +31,10 @@ jobs:
         run: |
           # Build for Linux
           GOOS=linux GOARCH=amd64 go build -o nnDiscordBot-linux-amd64
-
+          
           # Build for macOS
           GOOS=darwin GOARCH=amd64 go build -o nnDiscordBot-darwin-amd64
-
+          
           # Build for Windows
           GOOS=windows GOARCH=amd64 go build -o nnDiscordBot-windows-amd64.exe
 
@@ -45,14 +45,3 @@ jobs:
           dry_run: false
         env:
           GITHUB_TOKEN: ${{ secrets.SEMVER }}
-
-      # Upload the Go executables to GitHub Releases
-      - name: Upload Go executables to GitHub Releases
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            nnDiscordBot-linux-amd64
-            nnDiscordBot-darwin-amd64
-            nnDiscordBot-windows-amd64.exe
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
