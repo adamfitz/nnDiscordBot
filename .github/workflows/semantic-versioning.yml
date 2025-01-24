@@ -5,6 +5,9 @@ on:
     branches:
       - master  # target brnach to "listen" for PR merges
 
+permissions: # to allow the auto created gitactions tocken to push changes to the repo
+  contents: write
+
 jobs:
   semantic-versioning:
     runs-on: ubuntu-latest
