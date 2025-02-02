@@ -21,7 +21,6 @@ type Series struct {
 	EpisodesCount    int      `json:"episodesCount"`
 	Year             int      `json:"year"`
 	Status           string   `json:"status"`
-	Path             string   `json:"path"`
 	Genres           []string `json:"genres"`
 	TotalEpisodes    int      `json:"totalEpisodes"`
 	EpisodeFileCount int      `json:"episodeFileCount"`
@@ -186,7 +185,6 @@ func SonarrFetchAllLocalSeries(sonarrLocalSeriesUrl, apiKey string) (string, err
 		ID         int      `json:"id"`
 		Title      string   `json:"title"`
 		Status     string   `json:"status"`
-		Path       string   `json:"path"`
 		Year       int      `json:"year"`
 		Genres     []string `json:"genres"`
 		Statistics struct {
@@ -208,7 +206,6 @@ func SonarrFetchAllLocalSeries(sonarrLocalSeriesUrl, apiKey string) (string, err
 			ID:            rs.ID,
 			Title:         rs.Title,
 			Status:        rs.Status,
-			Path:          rs.Path,
 			Year:          rs.Year,
 			Genres:        rs.Genres,
 			SeasonCount:   rs.Statistics.SeasonCount,
