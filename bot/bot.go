@@ -246,9 +246,9 @@ func handleSonarrLocalSeriesSearch(s *discordgo.Session, m *discordgo.MessageCre
 	var message string
 	for _, series := range matchingSeries {
 		message += fmt.Sprintf(
-			"**%s** (ID: %d)\n- Seasons: %d\n- Episodes: %d\n- Year: %d\n- Status: %s\n- Path: %s\n- Genres: %s\n\n",
+			"**%s** (ID: %d)\n- Seasons: %d\n- Episodes: %d\n- Year: %d\n- Status: %s\n- Genres: %s\n\n",
 			series.Title, series.ID, series.SeasonCount, series.EpisodesCount, series.Year,
-			series.Status, series.Path, strings.Join(series.Genres, ", "),
+			series.Status, strings.Join(series.Genres, ", "),
 		)
 	}
 
