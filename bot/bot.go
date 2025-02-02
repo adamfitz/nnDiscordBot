@@ -18,6 +18,9 @@ type CommandHandler func(s *discordgo.Session, m *discordgo.MessageCreate, args 
 // CommandHandlers holds the mapping of commands to their handlers
 var CommandHandlers map[string]CommandHandler
 
+// Declare the variable at the package level
+var sonarrLocalSearchUrl string
+
 func Init() {
 	// Initialize the CommandHandlers map
 	CommandHandlers = map[string]CommandHandler{
@@ -27,6 +30,15 @@ func Init() {
 		"!sonarrlookup": handleSonarrSeriesLookup,
 		"!sonarrls":     handleSonarrLocalSeriesSearch, // search only the local sonarr instance
 	}
+
+	// Load the local config file
+	config, err := auth.LoadConfig()
+	if err != nil {
+		log.Println("Error loading config file:", err)
+		return
+	}
+
+	sonarrLocalSearchUrl = api.ConstructSonarrLocalSeriesURL(config.SonarrInstance, config.SonarrPort)
 }
 
 func RunBot() {
@@ -98,7 +110,7 @@ func handleEcho(s *discordgo.Session, m *discordgo.MessageCreate, args []string)
 	s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("You said: %s", message))
 }
 
-// handleSonarr responds to the !sslookup command and demonstrates argument usage
+// handleSonarr responds to the !sonarrlookup command and demonstrates argument usage
 func handleSonarrSeriesLookup(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	// Load the credentials from the auth package
 	creds, err := auth.LoadCreds()
@@ -118,8 +130,9 @@ func handleSonarrSeriesLookup(s *discordgo.Session, m *discordgo.MessageCreate, 
 	}
 
 	// Call the Sonarr API
-	baseURL := "http://10.23.0.3:8989/api/v3/series/lookup"
-	result, err := api.SonarrSeriesLookupAPICall(baseURL, "X-Api-Key", sonarrApiKey, "term", args[0])
+	url := sonarrLocalSearchUrl + "/lookup" // search url var declared in the init function
+
+	result, err := api.SonarrSeriesLookupAPICall(url, "X-Api-Key", sonarrApiKey, "term", args[0])
 	if err != nil {
 		log.Println("Error handling Sonarr API call:", err)
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error handling Sonarr API call: %s", err))
@@ -176,7 +189,6 @@ func handleSonarrSeriesLookup(s *discordgo.Session, m *discordgo.MessageCreate, 
 }
 
 // handleSonarr responds to the !sonarrls command
-// handleSonarr responds to the !sonarrls command
 func handleSonarrLocalSeriesSearch(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	// Load the credentials from the auth package
 	creds, err := auth.LoadCreds()
@@ -185,20 +197,6 @@ func handleSonarrLocalSeriesSearch(s *discordgo.Session, m *discordgo.MessageCre
 		s.ChannelMessageSend(m.ChannelID, "Error loading credentials. Please try again later.")
 		return
 	}
-
-	// Load the local config file
-	config, err := auth.LoadConfig()
-	if err != nil {
-		log.Println("Error loading config file:", err)
-		s.ChannelMessageSend(m.ChannelID, "Error loading config file. Please try again later.")
-		return
-	}
-
-	//log.Printf("Config data loaded. Target instance: %s, target port: %s", config.SonarrInstance, config.SonarrPort)
-
-	// Construct the Sonarr instance URL using the loaded config
-	baseURL := api.ConstructSonarrLocalSeriesURL(config.SonarrInstance, config.SonarrPort)
-	//log.Println("Base Sonarr URL constructed:", baseURL)
 
 	sonarrApiKey := creds.SonarrApiToken
 	log.Println("Sonarr API Local search arguments:", args)
@@ -210,7 +208,7 @@ func handleSonarrLocalSeriesSearch(s *discordgo.Session, m *discordgo.MessageCre
 	}
 
 	// Fetch all series from the local Sonarr instance
-	allSeriesJSON, err := api.SonarrFetchAllLocalSeries(baseURL, sonarrApiKey)
+	allSeriesJSON, err := api.SonarrFetchAllLocalSeries(sonarrLocalSearchUrl, sonarrApiKey)
 	if err != nil {
 		log.Println("Error fetching series from Sonarr:", err)
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error fetching series from Sonarr: %s", err))
