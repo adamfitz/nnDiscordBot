@@ -221,3 +221,8 @@ func SonarrFetchAllLocalSeries(sonarrLocalSeriesUrl, apiKey string) (string, err
 
 	return string(seriesJSON), nil
 }
+
+// SonarrBaseUrl constructs the base URL for the Sonarr API.
+func SonarrBaseUrl(sonarrInstance, sonarrPort string) string {
+	return fmt.Sprintf("http://%s:%s", sonarrInstance, sonarrPort)
+}
