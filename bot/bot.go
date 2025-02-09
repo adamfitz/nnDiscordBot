@@ -7,6 +7,7 @@ import (
 	"log"
 	"main/api"
 	"main/auth"
+	"main/postgres"
 	"os"
 	"os/signal"
 	"strings"
@@ -29,6 +30,7 @@ func Init() {
 		"!echo":         handleEcho,
 		"!sonarrlookup": handleSonarrSeriesLookup,
 		"!sonarrls":     handleSonarrLocalSeriesSearch, // search only the local sonarr instance
+		"!dbver":        handleDatabaseVersion,
 	}
 
 	// Load the local config file
@@ -276,4 +278,17 @@ func handleSonarrLocalSeriesSearch(s *discordgo.Session, m *discordgo.MessageCre
 
 	// Send the response
 	sendMessageChunks(message)
+}
+
+// database version lookup
+func handleDatabaseVersion(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	// Check if argument is provided
+	if len(args) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "Usage: !dbver - returns the database version)")
+		return
+	}
+
+	// return the database version
+	dbVersion := postgres.DbVersion()
+	s.ChannelMessageSend(m.ChannelID, dbVersion)
 }

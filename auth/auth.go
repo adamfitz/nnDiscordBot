@@ -16,11 +16,11 @@ type Auth struct {
 type Config struct {
 	SonarrInstance string `json:"sonarr_instance"`
 	SonarrPort     string `json:"sonarr_port"`
-	DbServer	   string `json:"db_server"`
-	DbPort		   string `json:"db_port"`
-	DbUser		   string `json:"db_user"`
-	DbPassword	   string `json:"db_user_pass"`
-	DbName		   string `json:"db_name"`
+	DbServer       string `json:"db_server"`
+	DbPort         string `json:"db_port"`
+	DbUser         string `json:"db_user"`
+	DbPassword     string `json:"db_user_pass"`
+	DbName         string `json:"db_name"`
 }
 
 // LoadCreds loads the credentials from the .discordrc file.
