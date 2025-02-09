@@ -27,13 +27,19 @@ be places in the following directory:
 
 The configuration file must be named: `nnDiscordCBot.config`
 
-If you are intending to use any of the features that require configuration (sonarr integration etc) The contents of said 
-file must be as follows:
+If you are intending to use any of the features that require configuration (sonarr integration, remote database etc) The 
+contents of said file must be as follows:
 
 ```bash
 $ cat ~/.config/nnDiscordBot/nnDiscordCBot.config 
 {
-	"sonarr_instance": "10.1.1.1",
-	"sonarr_port": "8989"
+	"sonarr_instance": "10.23.0.3",
+	"sonarr_port": "8989",
+	"db_server": "db server name or IP",
+	"db_port": "5432",
+	"db_user": "db username",
+	"db_user_pass": "db users password",
+	"db_name": "your database name",
 }
+
 ```
