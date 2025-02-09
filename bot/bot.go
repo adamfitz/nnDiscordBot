@@ -31,6 +31,7 @@ func Init() {
 		"!sonarrlookup": handleSonarrSeriesLookup,
 		"!sonarrls":     handleSonarrLocalSeriesSearch, // search only the local sonarr instance
 		"!dbver":        handleDatabaseVersion,
+		"!add":          handleDbInsertMangaName,
 	}
 
 	// Load the local config file
@@ -291,4 +292,25 @@ func handleDatabaseVersion(s *discordgo.Session, m *discordgo.MessageCreate, arg
 	// return the database version
 	dbVersion := postgres.DbVersion()
 	s.ChannelMessageSend(m.ChannelID, dbVersion)
+}
+
+// Insert new manga name into the database
+func handleDbInsertMangaName(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	// Check if argument is provided
+	if len(args) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "Usage: !add New manga Name to add to database)")
+		return
+	}
+
+	// Join all arguments to form the full manga name, allowing spaces and non-ASCII characters
+	mangaName := strings.Join(args, " ")
+
+	// Insert or update the manga name into the database
+	_, err := postgres.InsertUpdate(mangaName)
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error inserting/updating manga: %v", err))
+		return
+	}
+	message := fmt.Sprintf("Inserted / updated new manga %s to database", mangaName)
+	s.ChannelMessageSend(m.ChannelID, message)
 }

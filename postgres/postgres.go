@@ -50,3 +50,23 @@ func DbVersion() string {
 
 	return version
 }
+
+func InsertUpdate(mangaName string) (string, error) {
+
+	// Get the database connection
+	db, err := Connect()
+	if err != nil {
+		log.Fatalf("Database connection error: %v", err)
+	}
+	defer db.Close() // Close when the program exits
+
+	// Insert a new entry or update if it exists
+	_, err = db.Exec("INSERT INTO manga (manga_name) VALUES ($1) ON CONFLICT (manga_name) DO UPDATE SET manga_name = EXCLUDED.manga_name", mangaName)
+	if err != nil {
+		log.Fatalf("Insert/Update failed: %v", err)
+	}
+
+	log.Printf("Successfully inserted/updated manga: %s", mangaName)
+
+	return mangaName, err
+}
