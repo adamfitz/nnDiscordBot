@@ -2,14 +2,17 @@
 
 ## Credential handling
 
-Credentials are loaded from the home user directory file `~/.discordrc`
+Credentials are loaded from the home user directory file `~/.discordrc` this includes the api key/secret for opnsense FW
+ and sonarr api token.
 
 These creds need to be added to the above file in the below format:
 
 ```bash
 {
-    "bot_token": "xxx"
-    "sonarr_api_token": "xxx
+    "bot_token": "xxx",
+    "sonarr_api_token": "xxx",
+	"opnsense_api_key": "xxx",
+	"opnsense_api_secret":"xxx"
 }
 ```
 
@@ -27,7 +30,7 @@ be places in the following directory:
 
 The configuration file must be named: `nnDiscordCBot.config`
 
-If you are intending to use any of the features that require configuration (sonarr integration, remote database etc) The 
+If you are intending to use any of the features that require configuration (sonarr api, remote DB Opnsense FW etc) The 
 contents of said file must be as follows:
 
 ```bash
@@ -40,6 +43,7 @@ $ cat ~/.config/nnDiscordBot/nnDiscordCBot.config
 	"db_user": "db username",
 	"db_user_pass": "db users password",
 	"db_name": "your database name",
+	"opnsense_wan_int":"your fw wan interface name",
+	"opnsense_fw_ip":"your FW management IP",
 }
-
 ```

@@ -9,8 +9,10 @@ import (
 )
 
 type Auth struct {
-	BotToken       string `json:"bot_token"`
-	SonarrApiToken string `json:"sonarr_api_token"`
+	BotToken            string `json:"bot_token"`
+	SonarrApiToken      string `json:"sonarr_api_token"`
+	Opnsense_api_key    string `json:"opnsense_api_key"`
+	Opnsense_api_secret string `json:"opnsense_api_secret"`
 }
 
 type Config struct {
@@ -21,6 +23,8 @@ type Config struct {
 	DbUser         string `json:"db_user"`
 	DbPassword     string `json:"db_user_pass"`
 	DbName         string `json:"db_name"`
+	OpnsenseWanInt string `json:"opnsense_wan_int"`
+	OpnsenseFwIp   string `json:"opnsense_fw_ip"`
 }
 
 // LoadCreds loads the credentials from the .discordrc file.
