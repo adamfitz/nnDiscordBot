@@ -3,7 +3,6 @@ package bot
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"log"
 	"main/api"
 	"main/auth"
@@ -11,6 +10,9 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+
+	"github.com/bwmarrin/discordgo"
+	//"honnef.co/go/tools/config"
 )
 
 // CommandHandler defines the function signature for a command
@@ -32,6 +34,7 @@ func Init() {
 		"!sonarrls":     handleSonarrLocalSeriesSearch, // search only the local sonarr instance
 		"!dbver":        handleDatabaseVersion,
 		"!add":          handleDbInsertMangaName,
+		"!wip":          handleCurrentWanIP, // get current WAN IP from FW
 	}
 
 	// Load the local config file
@@ -42,6 +45,7 @@ func Init() {
 	}
 
 	sonarrLocalSearchUrl = api.ConstructSonarrLocalSeriesURL(config.SonarrInstance, config.SonarrPort)
+
 }
 
 func RunBot() {
@@ -312,5 +316,20 @@ func handleDbInsertMangaName(s *discordgo.Session, m *discordgo.MessageCreate, a
 		return
 	}
 	message := fmt.Sprintf("Inserted / updated new manga %s to database", mangaName)
+	s.ChannelMessageSend(m.ChannelID, message)
+}
+
+// Return current WAN IP
+func handleCurrentWanIP(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	// Check if argument is provided
+	if len(args) != 0 {
+		s.ChannelMessageSend(m.ChannelID, "Usage: !wip Returns FW WAN int IP address - No args)")
+		return
+	}
+
+	// Get the WAN IP address from the OPNsense firewall
+	wanIp, _ := api.OpnsenseWanIp()
+
+	message := fmt.Sprintf("WAN IP: %s", wanIp)
 	s.ChannelMessageSend(m.ChannelID, message)
 }

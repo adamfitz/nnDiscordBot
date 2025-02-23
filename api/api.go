@@ -1,9 +1,11 @@
 package api
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
+	"main/auth"
 	"net/http"
 	"net/url"
 )
@@ -225,4 +227,96 @@ func SonarrFetchAllLocalSeries(sonarrLocalSeriesUrl, apiKey string) (string, err
 // SonarrBaseUrl constructs the base URL for the Sonarr API.
 func SonarrBaseUrl(sonarrInstance, sonarrPort string) string {
 	return fmt.Sprintf("http://%s:%s", sonarrInstance, sonarrPort)
+}
+
+// Get the WAN IP address from the OPNsense firewall
+func OpnsenseWanIp() (string, error) {
+	// Load the config
+	config, err := auth.LoadConfig()
+	if err != nil {
+		return "", fmt.Errorf("error loading credentials for OpnsenseWanIp: %w", err)
+	}
+
+	// load the fw mgmt ip and int name
+	fwMgmtIP := config.OpnsenseFwIp
+	wanIntName := config.OpnsenseWanInt
+
+	wanIpUrl := fmt.Sprintf("https://%s/api/diagnostics/interface/getinterfaceconfig", fwMgmtIP)
+
+	// Load the credentials
+	creds, err := auth.LoadCreds()
+	if err != nil {
+		return "", fmt.Errorf("error loading credentials for OpnsenseWanIp: %w", err)
+	}
+
+	// load api key / secret
+	opnsenseKey := creds.Opnsense_api_key
+	opnsenseSecret := creds.Opnsense_api_secret
+
+	// Create a new GET request
+	request, err := http.NewRequest("GET", wanIpUrl, nil)
+	if err != nil {
+		return "", fmt.Errorf("error creating request for OpnsenseWanIp: %w", err)
+	}
+
+	request.SetBasicAuth(opnsenseKey, opnsenseSecret)
+
+	// disable cert check for self-signed certificate
+	skipSslVerify := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}
+
+	// Perform the HTTP request
+	client := &http.Client{Transport: skipSslVerify}
+	response, err := client.Do(request)
+	if err != nil {
+		return "", fmt.Errorf("error performing request for OpnsenseWanIp: %w", err)
+	}
+	defer response.Body.Close()
+
+	// Check for HTTP errors
+	if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("received non-200 status code for OpnsenseWanIp: %d", response.StatusCode)
+	}
+
+	// Read the response body
+	responseBody, err := io.ReadAll(response.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response body for OpnsenseWanIp: %w", err)
+	}
+
+	// Handle non-200 responses (e.g., authentication failure)
+	if response.StatusCode == http.StatusUnauthorized {
+		return "", fmt.Errorf("authentication failed: received 401 Unauthorized")
+	} else if response.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("received non-200 status code for OpnsenseWanIp: %d", response.StatusCode)
+	}
+
+	// Parse the JSON response
+	var jsonData map[string]interface{}
+	err = json.Unmarshal(responseBody, &jsonData)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshaling JSON: %w", err)
+	}
+
+	// Traverse JSON structure manually
+	interfaceData, ok := jsonData[wanIntName].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("interface %s not found in JSON response", wanIntName)
+	}
+
+	ipv4Array, ok := interfaceData["ipv4"].([]interface{})
+	if !ok || len(ipv4Array) == 0 {
+		return "", fmt.Errorf("ipv4 array not found for interface %s", wanIntName)
+	}
+
+	ipData, ok := ipv4Array[0].(map[string]interface{})
+	if !ok {
+		return "", fmt.Errorf("invalid IPv4 data structure for interface %s", wanIntName)
+	}
+
+	wanIp, ok := ipData["ipaddr"].(string)
+	if !ok {
+		return "", fmt.Errorf("IP address not found for interface %s", wanIntName)
+	}
+
+	return wanIp, nil
 }
