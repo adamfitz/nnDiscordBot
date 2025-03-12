@@ -61,7 +61,7 @@ func InsertUpdate(mangaName string) (string, error) {
 	defer db.Close() // Close when the program exits
 
 	// Insert a new entry or update if it exists
-	_, err = db.Exec("INSERT INTO manga (manga_name) VALUES ($1) ON CONFLICT (manga_name) DO UPDATE SET manga_name = EXCLUDED.manga_name", mangaName)
+	_, err = db.Exec("INSERT INTO manga (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name", mangaName)
 	if err != nil {
 		log.Fatalf("Insert/Update failed: %v", err)
 	}
