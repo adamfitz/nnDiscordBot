@@ -33,8 +33,9 @@ func Init() {
 		"!sonarrlookup": handleSonarrSeriesLookup,
 		"!sonarrls":     handleSonarrLocalSeriesSearch, // search only the local sonarr instance
 		"!dbver":        handleDatabaseVersion,
-		"!add":          handleDbInsertMangaName,
-		"!wip":          handleCurrentWanIP, // get current WAN IP from FW
+		"!addmd":        handleDbInsertMangadex, //insert to managdex table
+		"!addm":         handleDbInsertManga,    //insert to mangatable
+		"!wip":          handleCurrentWanIP,     // get current WAN IP from FW
 	}
 
 	// Load the local config file
@@ -299,23 +300,44 @@ func handleDatabaseVersion(s *discordgo.Session, m *discordgo.MessageCreate, arg
 }
 
 // Insert new manga name into the database
-func handleDbInsertMangaName(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+func handleDbInsertMangadex(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
 	// Check if argument is provided
 	if len(args) == 0 {
-		s.ChannelMessageSend(m.ChannelID, "Usage: !add New manga Name to add to database)")
+		s.ChannelMessageSend(m.ChannelID, "Usage: !addmd - Add new manga name to mangadex table")
 		return
 	}
 
 	// Join all arguments to form the full manga name, allowing spaces and non-ASCII characters
 	mangaName := strings.Join(args, " ")
 
-	// Insert or update the manga name into the database
-	_, err := postgres.InsertUpdate(mangaName)
+	// Insert or update the name into manga table in the database
+	_, err := postgres.InsertIfNotExists(mangaName, "mangadex")
 	if err != nil {
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error inserting/updating manga: %v", err))
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error inserting/updating \"mangadex\" table: %v", err))
 		return
 	}
-	message := fmt.Sprintf("Inserted / updated new manga %s to database", mangaName)
+	message := fmt.Sprintf("Inserted / updated new manga %s into \"mangadex\" table", mangaName)
+	s.ChannelMessageSend(m.ChannelID, message)
+}
+
+// Insert new manga name into the database
+func handleDbInsertManga(s *discordgo.Session, m *discordgo.MessageCreate, args []string) {
+	// Check if argument is provided
+	if len(args) == 0 {
+		s.ChannelMessageSend(m.ChannelID, "Usage: !addm - Add new manga name to manga table")
+		return
+	}
+
+	// Join all arguments to form the full manga name, allowing spaces and non-ASCII characters
+	mangaName := strings.Join(args, " ")
+
+	// Insert or update the name into manga table in the database
+	_, err := postgres.InsertIfNotExists(mangaName, "manga")
+	if err != nil {
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf("Error inserting/updating \"manga\" table: %v", err))
+		return
+	}
+	message := fmt.Sprintf("Inserted / updated new manga %s into \"manga\" table", mangaName)
 	s.ChannelMessageSend(m.ChannelID, message)
 }
 
